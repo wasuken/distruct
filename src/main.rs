@@ -1,10 +1,8 @@
 use rand::Rng;
-use serde_json;
-use std::fs::File;
-use std::io::BufReader;
 use std::thread;
 use std::time::Duration;
 use terminal::{Action, Clear, Color, Retrieved, Value};
+mod rss;
 
 fn random_color() -> Color {
     let mut rng = rand::thread_rng();
@@ -33,9 +31,11 @@ fn random_color() -> Color {
 
 fn main() {
     // JSONファイルを読み込む
-    let file = File::open("data.json").expect("Failed to open data.json");
-    let reader = BufReader::new(file);
-    let data: Vec<String> = serde_json::from_reader(reader).expect("Failed to parse JSON");
+    let items = rss::fetch_feed_items("https://b.hatena.ne.jp/hotentry/it.rss").unwrap();
+    let data: Vec<String> = items
+        .iter()
+        .map(|item| item.title().unwrap().to_string())
+        .collect();
 
     // ターミナルのインスタンスを作成
     let terminal = terminal::stdout();
@@ -62,7 +62,7 @@ fn main() {
         let x = rand::thread_rng().gen_range(0..max_width);
         // 20をtext.len()にするとおちる。
         let mut trun_by_text_len_width = max_height - 20;
-        if trun_by_text_len_width < 0 {
+        if trun_by_text_len_width <= 0 {
             trun_by_text_len_width = 0;
         }
         let y = rand::thread_rng().gen_range(0..trun_by_text_len_width);
@@ -82,7 +82,7 @@ fn main() {
         terminal.flush_batch().expect("error: flush batch");
 
         // 2秒待機
-        thread::sleep(Duration::from_millis(800));
+        thread::sleep(Duration::from_millis(2000));
         terminal.act(Action::ScrollDown(1)).expect("error: scroll");
     }
 }
