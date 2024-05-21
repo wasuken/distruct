@@ -240,6 +240,7 @@ dependencies = [
  "rand",
  "reqwest",
  "rss",
+ "serde",
  "serde_json",
  "terminal",
 ]
